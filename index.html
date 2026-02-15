@@ -3,49 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cyber Cinematic Ultimate</title>
+<title>Secure Access</title>
 
 <style>
 body{
   margin:0;
-  background:#000;
-  font-family:monospace;
-  color:#00ffcc;
+  background:black;
+  color:#00ffff;
+  font-family:Arial;
+  text-align:center;
   overflow:hidden;
 }
 
-/* CRT scanlines */
-body::after{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:repeating-linear-gradient(
-    to bottom,
-    rgba(0,255,200,0.05),
-    rgba(0,255,200,0.05) 2px,
-    transparent 2px,
-    transparent 4px
-  );
-  pointer-events:none;
+.hidden{display:none;}
+
+#gate{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
 }
 
-/* CRT curvature */
-body{
-  filter:contrast(110%) brightness(95%);
+input{
+  padding:14px;
+  font-size:18px;
+  width:280px;
+  text-align:center;
+  background:#111;
+  border:1px solid #00ffff;
+  color:#00ffff;
 }
 
-/* Laser */
-.laser{
-  position:fixed;
-  width:100%;
-  height:2px;
-  background:#00ffcc;
-  animation:scan 2s linear infinite;
+button{
+  padding:12px 30px;
+  font-size:18px;
+  margin-top:15px;
+  cursor:pointer;
+  background:#00ffff;
+  color:black;
+  border:none;
 }
-@keyframes scan{
-  0%{top:0;}
-  100%{top:100%;}
+
+button:disabled{
+  background:#444;
+  color:#111;
+  cursor:not-allowed;
+}
+
+#blocked{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:40px;
+  color:red;
+  animation:glitch 0.2s linear 8;
+}
+
+@keyframes glitch{
+  0%{transform:translate(-50%,-50%)}
+  25%{transform:translate(-52%,-48%)}
+  50%{transform:translate(-48%,-52%)}
+  75%{transform:translate(-52%,-52%)}
+  100%{transform:translate(-50%,-50%)}
 }
 
 video{
@@ -56,250 +76,71 @@ video{
   max-width:100%;
   max-height:100%;
 }
-
-.hidden{display:none;}
-
-.center{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
-
-input{
-  padding:12px;
-  width:260px;
-  background:#000;
-  border:1px solid #00ffcc;
-  color:#00ffcc;
-  text-align:center;
-  font-size:18px;
-}
-
-.btn{
-  padding:10px 25px;
-  margin-top:15px;
-  background:#000;
-  border:1px solid #00ffcc;
-  color:#00ffcc;
-  cursor:pointer;
-  transition:0.3s;
-}
-.btn:hover{
-  background:#00ffcc;
-  color:#000;
-}
-
-.counter{
-  font-size:34px;
-  letter-spacing:5px;
-  margin-top:15px;
-}
-
-/* Glitch */
-.glitch{
-  animation:glitch 0.4s;
-}
-@keyframes glitch{
-  0%{transform:translate(2px,0);filter:hue-rotate(0);}
-  25%{transform:translate(-2px,0);filter:hue-rotate(90deg);}
-  50%{transform:translate(2px,2px);filter:hue-rotate(180deg);}
-  75%{transform:translate(-2px,-2px);filter:hue-rotate(270deg);}
-  100%{transform:none;filter:none;}
-}
-
-/* Shake */
-.shake{
-  animation:shake 0.4s;
-}
-@keyframes shake{
-  0%{transform:translate(-50%,-50%) translateX(0);}
-  25%{transform:translate(-50%,-50%) translateX(-10px);}
-  50%{transform:translate(-50%,-50%) translateX(10px);}
-  75%{transform:translate(-50%,-50%) translateX(-5px);}
-  100%{transform:translate(-50%,-50%) translateX(0);}
-}
-
-/* Power off */
-.poweroff{
-  animation:poweroff 1s forwards;
-}
-@keyframes poweroff{
-  0%{transform:scaleY(1);}
-  50%{transform:scaleY(0.02);}
-  100%{transform:scale(0);}
-}
 </style>
 </head>
 <body>
 
-<div class="laser"></div>
-<canvas id="noise"></canvas>
-<canvas id="matrix"></canvas>
-
-<video id="v1" autoplay playsinline>
-  <source src="h.mp4" type="video/mp4">
-</video>
-
-<div id="phoneBox" class="center hidden">
-  <input type="text" id="phone" placeholder="ادخل رقم الهاتف">
+<!-- شاشة الدخول -->
+<div id="gate">
+  <h2>ادخل كود الدفع</h2>
+  <input type="text" id="codeInput">
   <br>
-  <button class="btn" onclick="startSecond()">تحقق</button>
+  <button onclick="checkCode()">دخول</button>
+  <p id="msg" style="color:red;"></p>
 </div>
 
-<video id="v2" class="hidden" playsinline>
-  <source src="h2.mp4" type="video/mp4">
-</video>
-
-<div id="scanBox" class="center hidden">
-  <div>جاري الفحص الأمني التوعوي...</div>
-  <div class="counter" id="counter">000000</div>
+<!-- شاشة حظر -->
+<div id="blocked" class="hidden">
+  لا يمكنك الدخول مرة أخرى
 </div>
 
-<div id="resultBox" class="center hidden">
-  <h3>التوصيات الأمنية</h3>
-  <p>✓ تفعيل المصادقة الثنائية</p>
-  <p>✓ استخدام كلمات مرور قوية</p>
-  <p>✓ تحديث النظام باستمرار</p>
-  <button class="btn" onclick="startThird()">تشغيل الفيديو الأخير</button>
-</div>
-
-<video id="v3" class="hidden" playsinline>
-  <source src="h3.mp4" type="video/mp4">
-</video>
+<!-- الفيديو الأول -->
+<video id="video1" class="hidden" src="h.mp4"></video>
 
 <script>
-let v1=v1=document.getElementById("v1");
-let v2=document.getElementById("v2");
-let v3=document.getElementById("v3");
-let phoneBox=document.getElementById("phoneBox");
-let scanBox=document.getElementById("scanBox");
-let resultBox=document.getElementById("resultBox");
-let counter=document.getElementById("counter");
 
-/* Audio */
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(freq,dur){
-  const osc=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.frequency.value=freq;
-  osc.type="square";
-  osc.start();
-  gain.gain.setValueAtTime(0.07,audioCtx.currentTime);
-  osc.stop(audioCtx.currentTime+dur/1000);
+const correctCode="885147682861azw11a";
+
+// لو كان محظور قبل كده
+if(localStorage.getItem("blocked") === "yes"){
+  document.getElementById("gate").classList.add("hidden");
+  document.getElementById("blocked").classList.remove("hidden");
 }
 
-/* Noise */
-let noiseCanvas=document.getElementById("noise");
-let nctx=noiseCanvas.getContext("2d");
-noiseCanvas.width=window.innerWidth;
-noiseCanvas.height=window.innerHeight;
+// التحقق من كود الدفع
+function checkCode(){
+  let code=document.getElementById("codeInput").value;
 
-function noise(duration){
-  let end=Date.now()+duration;
-  function draw(){
-    if(Date.now()>end)return;
-    let img=nctx.createImageData(noiseCanvas.width,noiseCanvas.height);
-    for(let i=0;i<img.data.length;i+=4){
-      let val=Math.random()*255;
-      img.data[i]=val;
-      img.data[i+1]=val;
-      img.data[i+2]=val;
-      img.data[i+3]=255;
-    }
-    nctx.putImageData(img,0,0);
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-/* Matrix Rain */
-let mCanvas=document.getElementById("matrix");
-let mctx=mCanvas.getContext("2d");
-mCanvas.width=window.innerWidth;
-mCanvas.height=window.innerHeight;
-let letters="01";
-let fontSize=16;
-let columns=mCanvas.width/fontSize;
-let drops=[];
-for(let x=0;x<columns;x++)drops[x]=1;
-
-function matrix(){
-  mctx.fillStyle="rgba(0,0,0,0.05)";
-  mctx.fillRect(0,0,mCanvas.width,mCanvas.height);
-  mctx.fillStyle="#0f0";
-  mctx.font=fontSize+"px monospace";
-  for(let i=0;i<drops.length;i++){
-    let text=letters[Math.floor(Math.random()*letters.length)];
-    mctx.fillText(text,i*fontSize,drops[i]*fontSize);
-    if(drops[i]*fontSize>mCanvas.height&&Math.random()>0.975)
-      drops[i]=0;
-    drops[i]++;
+  if(code === correctCode){
+    document.getElementById("gate").classList.add("hidden");
+    startVideo();
+  }else{
+    // حظر نهائي
+    localStorage.setItem("blocked","yes");
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("blocked").classList.remove("hidden");
   }
 }
 
-/* First */
-setTimeout(()=>goPhone(),20000);
-document.body.addEventListener("click",goPhone,{once:true});
-v1.onended=goPhone;
+// تشغيل الفيديو الأول 20 ثانية أو تخطي بالضغط
+function startVideo(){
+  let v=document.getElementById("video1");
+  v.classList.remove("hidden");
+  v.play();
 
-function goPhone(){
-  v1.pause();
-  v1.classList.add("hidden");
-  phoneBox.classList.remove("hidden");
-  beep(600,120);
-}
-
-/* Second */
-function startSecond(){
-  let phone=document.getElementById("phone").value;
-  if(phone.trim()=="")return;
-  phoneBox.classList.add("hidden");
-  v2.classList.remove("hidden");
-  v2.play();
-  beep(800,120);
-}
-
-v2.onended=function(){
-  v2.classList.add("hidden");
-  startScan();
-};
-
-function startScan(){
-  scanBox.classList.remove("hidden");
-  scanBox.classList.add("shake");
-  noise(2000);
-  beep(1000,200);
-  let i=0;
-  let interval=setInterval(()=>{
-    counter.innerText=(Math.random()*999999|0).toString().padStart(6,"0");
-    matrix();
-    i++;
-    if(i>60){
-      clearInterval(interval);
-      scanBox.classList.add("glitch");
-      setTimeout(()=>{
-        scanBox.classList.add("hidden");
-        resultBox.classList.remove("hidden");
-        beep(1200,150);
-      },600);
-    }
-  },50);
-}
-
-/* Third */
-function startThird(){
-  resultBox.classList.add("hidden");
-  v3.classList.remove("hidden");
-  v3.play();
-  beep(700,120);
-  v3.onended=function(){
-    document.body.classList.add("poweroff");
+  // تخطي بالضغط
+  v.onclick=function(){
+    v.pause();
+    v.classList.add("hidden");
   };
+
+  // بعد 20 ثانية يختفي
+  setTimeout(()=>{
+    v.pause();
+    v.classList.add("hidden");
+  },20000);
 }
+
 </script>
 
 </body>

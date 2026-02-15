@@ -3,18 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Security System</title>
+<title>Cyber Cinematic Ultimate</title>
 
 <style>
 body{
   margin:0;
   background:#000;
-  font-family:Arial;
-  color:#fff;
+  font-family:monospace;
+  color:#00ffcc;
   overflow:hidden;
 }
 
-/* الفيديو بالحجم الأصلي */
+/* CRT scanlines */
+body::after{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(0,255,200,0.05),
+    rgba(0,255,200,0.05) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events:none;
+}
+
+/* CRT curvature */
+body{
+  filter:contrast(110%) brightness(95%);
+}
+
+/* Laser */
+.laser{
+  position:fixed;
+  width:100%;
+  height:2px;
+  background:#00ffcc;
+  animation:scan 2s linear infinite;
+}
+@keyframes scan{
+  0%{top:0;}
+  100%{top:100%;}
+}
+
 video{
   position:absolute;
   top:50%;
@@ -24,186 +57,248 @@ video{
   max-height:100%;
 }
 
-/* تأثير Glitch */
-.glitch{
-  position:absolute;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:22px;
-  color:#fff;
-  animation:glitch 1s infinite;
-}
+.hidden{display:none;}
 
-@keyframes glitch{
-  0%{text-shadow:2px 0 red,-2px 0 blue;}
-  20%{text-shadow:-2px 0 red,2px 0 blue;}
-  40%{text-shadow:2px 2px red,-2px -2px blue;}
-  60%{text-shadow:-2px -2px red,2px 2px blue;}
-  80%{text-shadow:2px -2px red,-2px 2px blue;}
-  100%{text-shadow:none;}
-}
-
-/* انتقال Fade */
-.fade-out{
-  animation:fadeOut 0.7s forwards;
-}
-.fade-in{
-  animation:fadeIn 0.7s forwards;
-}
-
-@keyframes fadeOut{
-  from{opacity:1;}
-  to{opacity:0;}
-}
-@keyframes fadeIn{
-  from{opacity:0;}
-  to{opacity:1;}
-}
-
-/* صندوق الإدخال */
-#phoneSection{
+.center{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
   text-align:center;
-  display:none;
 }
 
 input{
   padding:12px;
-  font-size:18px;
   width:260px;
+  background:#000;
+  border:1px solid #00ffcc;
+  color:#00ffcc;
   text-align:center;
-  background:#111;
-  border:1px solid #333;
-  color:#fff;
-}
-
-/* زر متقدم */
-.btn{
-  padding:12px 30px;
   font-size:18px;
+}
+
+.btn{
+  padding:10px 25px;
   margin-top:15px;
+  background:#000;
+  border:1px solid #00ffcc;
+  color:#00ffcc;
   cursor:pointer;
-  background:#111;
-  color:#fff;
-  border:1px solid #444;
   transition:0.3s;
-  animation:pulse 1.5s infinite;
 }
-
 .btn:hover{
-  background:#222;
+  background:#00ffcc;
+  color:#000;
 }
 
-@keyframes pulse{
-  0%{box-shadow:0 0 5px #0ff;}
-  50%{box-shadow:0 0 20px #0ff;}
-  100%{box-shadow:0 0 5px #0ff;}
+.counter{
+  font-size:34px;
+  letter-spacing:5px;
+  margin-top:15px;
 }
 
-/* القسم بعد الفيديو الثاني */
-#resultSection{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-  display:none;
+/* Glitch */
+.glitch{
+  animation:glitch 0.4s;
+}
+@keyframes glitch{
+  0%{transform:translate(2px,0);filter:hue-rotate(0);}
+  25%{transform:translate(-2px,0);filter:hue-rotate(90deg);}
+  50%{transform:translate(2px,2px);filter:hue-rotate(180deg);}
+  75%{transform:translate(-2px,-2px);filter:hue-rotate(270deg);}
+  100%{transform:none;filter:none;}
+}
+
+/* Shake */
+.shake{
+  animation:shake 0.4s;
+}
+@keyframes shake{
+  0%{transform:translate(-50%,-50%) translateX(0);}
+  25%{transform:translate(-50%,-50%) translateX(-10px);}
+  50%{transform:translate(-50%,-50%) translateX(10px);}
+  75%{transform:translate(-50%,-50%) translateX(-5px);}
+  100%{transform:translate(-50%,-50%) translateX(0);}
+}
+
+/* Power off */
+.poweroff{
+  animation:poweroff 1s forwards;
+}
+@keyframes poweroff{
+  0%{transform:scaleY(1);}
+  50%{transform:scaleY(0.02);}
+  100%{transform:scale(0);}
 }
 </style>
 </head>
 <body>
 
-<div class="glitch">SECURITY CHECK SYSTEM</div>
+<div class="laser"></div>
+<canvas id="noise"></canvas>
+<canvas id="matrix"></canvas>
 
-<video id="video1" autoplay playsinline>
+<video id="v1" autoplay playsinline>
   <source src="h.mp4" type="video/mp4">
 </video>
 
-<div id="phoneSection">
+<div id="phoneBox" class="center hidden">
   <input type="text" id="phone" placeholder="ادخل رقم الهاتف">
   <br>
-  <button class="btn" onclick="startSecondVideo()">تحقق</button>
+  <button class="btn" onclick="startSecond()">تحقق</button>
 </div>
 
-<video id="video2" playsinline style="display:none;">
+<video id="v2" class="hidden" playsinline>
   <source src="h2.mp4" type="video/mp4">
 </video>
 
-<div id="resultSection">
-  <button class="btn" onclick="startThirdVideo()">تم التحديد</button>
-  <p style="margin-top:15px;color:#aaa;">
-    اضغط الآن للتعرف على بيانات المواقع المجهولة
-  </p>
-  <button class="btn" onclick="startThirdVideo()">اضغط</button>
+<div id="scanBox" class="center hidden">
+  <div>جاري الفحص الأمني التوعوي...</div>
+  <div class="counter" id="counter">000000</div>
 </div>
 
-<video id="video3" playsinline style="display:none;">
+<div id="resultBox" class="center hidden">
+  <h3>التوصيات الأمنية</h3>
+  <p>✓ تفعيل المصادقة الثنائية</p>
+  <p>✓ استخدام كلمات مرور قوية</p>
+  <p>✓ تحديث النظام باستمرار</p>
+  <button class="btn" onclick="startThird()">تشغيل الفيديو الأخير</button>
+</div>
+
+<video id="v3" class="hidden" playsinline>
   <source src="h3.mp4" type="video/mp4">
 </video>
 
 <script>
-let video1 = document.getElementById("video1");
-let video2 = document.getElementById("video2");
-let video3 = document.getElementById("video3");
-let phoneSection = document.getElementById("phoneSection");
-let resultSection = document.getElementById("resultSection");
+let v1=v1=document.getElementById("v1");
+let v2=document.getElementById("v2");
+let v3=document.getElementById("v3");
+let phoneBox=document.getElementById("phoneBox");
+let scanBox=document.getElementById("scanBox");
+let resultBox=document.getElementById("resultBox");
+let counter=document.getElementById("counter");
 
-/* تشغيل 20 ثانية فقط للفيديو الأول */
-setTimeout(()=>{
-  if(!video1.paused){
-    goToPhone();
+/* Audio */
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function beep(freq,dur){
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value=freq;
+  osc.type="square";
+  osc.start();
+  gain.gain.setValueAtTime(0.07,audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime+dur/1000);
+}
+
+/* Noise */
+let noiseCanvas=document.getElementById("noise");
+let nctx=noiseCanvas.getContext("2d");
+noiseCanvas.width=window.innerWidth;
+noiseCanvas.height=window.innerHeight;
+
+function noise(duration){
+  let end=Date.now()+duration;
+  function draw(){
+    if(Date.now()>end)return;
+    let img=nctx.createImageData(noiseCanvas.width,noiseCanvas.height);
+    for(let i=0;i<img.data.length;i+=4){
+      let val=Math.random()*255;
+      img.data[i]=val;
+      img.data[i+1]=val;
+      img.data[i+2]=val;
+      img.data[i+3]=255;
+    }
+    nctx.putImageData(img,0,0);
+    requestAnimationFrame(draw);
   }
-},20000);
-
-/* تخطي عند الضغط */
-document.body.addEventListener("click", function skip(){
-  goToPhone();
-  document.body.removeEventListener("click", skip);
-});
-
-video1.onended = goToPhone;
-
-function goToPhone(){
-  video1.classList.add("fade-out");
-  setTimeout(()=>{
-    video1.pause();
-    video1.style.display="none";
-    phoneSection.style.display="block";
-    phoneSection.classList.add("fade-in");
-  },700);
+  draw();
 }
 
-function startSecondVideo(){
-  let phone = document.getElementById("phone").value;
-  if(phone.trim()=="") return;
+/* Matrix Rain */
+let mCanvas=document.getElementById("matrix");
+let mctx=mCanvas.getContext("2d");
+mCanvas.width=window.innerWidth;
+mCanvas.height=window.innerHeight;
+let letters="01";
+let fontSize=16;
+let columns=mCanvas.width/fontSize;
+let drops=[];
+for(let x=0;x<columns;x++)drops[x]=1;
 
-  phoneSection.classList.add("fade-out");
-  setTimeout(()=>{
-    phoneSection.style.display="none";
-    video2.style.display="block";
-    video2.classList.add("fade-in");
-    video2.play();
-  },700);
+function matrix(){
+  mctx.fillStyle="rgba(0,0,0,0.05)";
+  mctx.fillRect(0,0,mCanvas.width,mCanvas.height);
+  mctx.fillStyle="#0f0";
+  mctx.font=fontSize+"px monospace";
+  for(let i=0;i<drops.length;i++){
+    let text=letters[Math.floor(Math.random()*letters.length)];
+    mctx.fillText(text,i*fontSize,drops[i]*fontSize);
+    if(drops[i]*fontSize>mCanvas.height&&Math.random()>0.975)
+      drops[i]=0;
+    drops[i]++;
+  }
 }
 
-video2.onended = function(){
-  resultSection.style.display="block";
-  resultSection.classList.add("fade-in");
+/* First */
+setTimeout(()=>goPhone(),20000);
+document.body.addEventListener("click",goPhone,{once:true});
+v1.onended=goPhone;
+
+function goPhone(){
+  v1.pause();
+  v1.classList.add("hidden");
+  phoneBox.classList.remove("hidden");
+  beep(600,120);
+}
+
+/* Second */
+function startSecond(){
+  let phone=document.getElementById("phone").value;
+  if(phone.trim()=="")return;
+  phoneBox.classList.add("hidden");
+  v2.classList.remove("hidden");
+  v2.play();
+  beep(800,120);
+}
+
+v2.onended=function(){
+  v2.classList.add("hidden");
+  startScan();
 };
 
-function startThirdVideo(){
-  resultSection.classList.add("fade-out");
-  setTimeout(()=>{
-    resultSection.style.display="none";
-    video2.style.display="none";
-    video3.style.display="block";
-    video3.classList.add("fade-in");
-    video3.play();
-  },700);
+function startScan(){
+  scanBox.classList.remove("hidden");
+  scanBox.classList.add("shake");
+  noise(2000);
+  beep(1000,200);
+  let i=0;
+  let interval=setInterval(()=>{
+    counter.innerText=(Math.random()*999999|0).toString().padStart(6,"0");
+    matrix();
+    i++;
+    if(i>60){
+      clearInterval(interval);
+      scanBox.classList.add("glitch");
+      setTimeout(()=>{
+        scanBox.classList.add("hidden");
+        resultBox.classList.remove("hidden");
+        beep(1200,150);
+      },600);
+    }
+  },50);
+}
+
+/* Third */
+function startThird(){
+  resultBox.classList.add("hidden");
+  v3.classList.remove("hidden");
+  v3.play();
+  beep(700,120);
+  v3.onended=function(){
+    document.body.classList.add("poweroff");
+  };
 }
 </script>
 

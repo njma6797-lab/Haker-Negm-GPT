@@ -3,261 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cyber Ultimate Cinematic</title>
-
+<title>Cyber Security Training</title>
 <style>
-body{
-  margin:0;
-  background:black;
-  color:#00ffee;
-  font-family:monospace;
-  overflow:hidden;
-  text-align:center;
-}
-
-/* تأثير CRT + Scanlines */
-body::after{
-  content:"";
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:repeating-linear-gradient(
-    to bottom,
-    rgba(0,255,255,0.05) 0px,
-    rgba(0,255,255,0.05) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  pointer-events:none;
-}
-
-/* طبقة Noise */
-body::before{
-  content:"";
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:url('https://grainy-gradients.vercel.app/noise.svg');
-  opacity:0.07;
-  pointer-events:none;
-}
-
+body{margin:0;background:black;color:#00ffee;font-family:monospace;text-align:center;overflow:hidden;}
+.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;}
+input,button{padding:12px;margin:10px;font-size:18px;border:none;border-radius:6px;}
+button{background:#00ffee;color:black;cursor:pointer;}
+button:hover{background:#00cccc;}
 .hidden{display:none;}
-
-.center{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:90%;
-}
-
-/* Glitch */
-.glitch{
-  animation:glitch 0.3s linear 6;
-}
+.glitch{animation:glitch 0.3s linear 6;}
 @keyframes glitch{
-  0%{transform:translate(-50%,-50%)}
-  25%{transform:translate(-52%,-48%)}
-  50%{transform:translate(-48%,-52%)}
-  75%{transform:translate(-52%,-52%)}
-  100%{transform:translate(-50%,-50%)}
+  0%{transform:translate(-50%,-50%)}25%{transform:translate(-52%,-48%)}50%{transform:translate(-48%,-52%)}75%{transform:translate(-52%,-52%)}100%{transform:translate(-50%,-50%)}
 }
-
-input{
-  padding:14px;
-  font-size:18px;
-  width:280px;
-  background:#111;
-  border:1px solid #00ffee;
-  color:#00ffee;
-  text-align:center;
-}
-
-button{
-  padding:12px 25px;
-  font-size:18px;
-  margin-top:15px;
-  background:#00ffee;
-  color:black;
-  border:none;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#00cccc;
-}
-
-video{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  max-width:100%;
-  max-height:100%;
-}
-
-/* شاشة الحظر */
-#blocked{
-  color:red;
-  font-size:40px;
-}
-
-/* شاشة الفحص */
-.scan{
-  font-size:22px;
-  animation:blink 1s infinite;
-}
-@keyframes blink{
-  0%{opacity:1}
-  50%{opacity:0.3}
-  100%{opacity:1}
-}
-
-.progressBar{
-  width:80%;
-  height:20px;
-  border:1px solid #00ffee;
-  margin:20px auto;
-}
-
-.progress{
-  height:100%;
-  width:0%;
-  background:#00ffee;
-  transition:width 0.2s;
-}
-
-.counter{
-  font-size:30px;
-  letter-spacing:5px;
-}
+body::after{content:"";position:fixed;inset:0;background:repeating-linear-gradient(to bottom, rgba(0,255,255,0.05) 0px, rgba(0,255,255,0.05) 1px, transparent 1px, transparent 3px);pointer-events:none;}
+body::before{content:"";position:fixed;inset:0;background:url("https://grainy-gradients.vercel.app/noise.svg");opacity:0.06;pointer-events:none;}
+video{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:100%;max-height:100%;}
+.scan{font-size:22px;animation:blink 1s infinite;}
+@keyframes blink{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}
+.progressBar{width:80%;height:20px;border:1px solid #00ffee;margin:20px auto;}
+.progress{height:100%;width:0%;background:#00ffee;transition:width 0.2s;}
+.counter{font-size:30px;letter-spacing:5px;}
+#matrixCanvas{position:fixed;inset:0;z-index:-1;}
 </style>
 </head>
-
 <body>
 
-<!-- شاشة كود الدفع -->
+<canvas id="matrixCanvas"></canvas>
+
+<!-- شاشة كود الدخول -->
 <div id="gate" class="center glitch">
-<h2>ادخل كود الدفع</h2>
+<h2>ادخل كود الدخول التعليمي</h2>
 <input type="text" id="codeInput">
 <br>
-<button onclick="checkCode()">دخول</button>
+<button onclick="checkCode()">تأكيد</button>
 </div>
 
-<!-- شاشة الحظر -->
+<!-- شاشة الحظر (محاكاة تعليمية) -->
 <div id="blocked" class="center hidden glitch">
-لا يمكنك الدخول مرة أخرى
+<h2>الوصول محظور</h2>
+<p>ادخل كود فك الحظر التعليمي</p>
+<input type="text" id="unblockInput">
+<br>
+<button onclick="unblock()">تأكيد</button>
 </div>
 
-<!-- الفيديوهات -->
+<!-- فيديوهات -->
 <video id="v1" class="hidden" src="h.mp4"></video>
 <video id="v2" class="hidden" src="h2.mp4"></video>
 <video id="v3" class="hidden" src="h3.mp4"></video>
 
-<!-- شاشة إدخال الهاتف -->
+<!-- إدخال الهاتف -->
 <div id="phoneScreen" class="center hidden glitch">
-<h2>ادخل رقم الهاتف للحماية</h2>
+<h2>ادخل رقم الهاتف (عرض توعوي)</h2>
 <input type="text" id="phoneInput">
 <br>
-<button onclick="startVideo2()">تحقق</button>
+<button onclick="startVideo2()">متابعة</button>
 </div>
 
-<!-- شاشة تم التحديد -->
+<!-- تم التحديد -->
 <div id="confirmScreen" class="center hidden glitch">
-<h3>تم التحديد</h3>
-<p>اضغط الآن للتعرف على بيانات المواقع المجهولة</p>
-<button onclick="startVideo3()">اضغط</button>
+<h3>تم التحقق التعليمي</h3>
+<p>اضغط للانتقال للمرحلة التالية</p>
+<button onclick="startVideo3()">استمرار</button>
 </div>
 
 <!-- شاشة الفحص -->
 <div id="scanScreen" class="center hidden">
-<div class="scan">جاري الفحص الأمني التوعوي...</div>
-<div class="progressBar">
-<div class="progress" id="progressBar"></div>
-</div>
+<div class="scan">جاري الفحص التعليمي...</div>
+<div class="progressBar"><div class="progress" id="progressBar"></div></div>
 <div class="counter" id="counter">000000</div>
 </div>
 
 <script>
-
 const correctCode="885147682861azw11a";
+const unblockCode="fr14mo888";
 
-/* حظر دائم */
-if(localStorage.getItem("blocked") === "yes"){
-  document.getElementById("gate").classList.add("hidden");
-  document.getElementById("blocked").classList.remove("hidden");
+const gate=document.getElementById("gate");
+const blocked=document.getElementById("blocked");
+const accessInput=document.getElementById("codeInput");
+const unblockInput=document.getElementById("unblockInput");
+const v1=document.getElementById("v1");
+const v2=document.getElementById("v2");
+const v3=document.getElementById("v3");
+const phoneScreen=document.getElementById("phoneScreen");
+const phoneInput=document.getElementById("phoneInput");
+const confirmScreen=document.getElementById("confirmScreen");
+const scanScreen=document.getElementById("scanScreen");
+const progressBar=document.getElementById("progressBar");
+const counter=document.getElementById("counter");
+
+if(localStorage.getItem("blocked")==="yes"){
+  gate.classList.add("hidden");
+  blocked.classList.remove("hidden");
 }
 
-/* تحقق الكود */
 function checkCode(){
-  let code=document.getElementById("codeInput").value;
-  if(code === correctCode){
-    document.getElementById("gate").classList.add("hidden");
+  if(accessInput.value===correctCode){
+    gate.classList.add("hidden");
     startVideo1();
   }else{
     localStorage.setItem("blocked","yes");
-    document.getElementById("gate").classList.add("hidden");
-    document.getElementById("blocked").classList.remove("hidden");
+    gate.classList.add("hidden");
+    blocked.classList.remove("hidden");
   }
 }
 
-/* فيديو 1 */
+function unblock(){
+  if(unblockInput.value===unblockCode){
+    localStorage.removeItem("blocked");
+    location.reload();
+  }
+}
+
+/* فيديوهات */
 function startVideo1(){
-  let v=document.getElementById("v1");
-  v.classList.remove("hidden");
-  v.play();
-  v.onclick=skipVideo1;
+  v1.classList.remove("hidden");
+  v1.play();
+  v1.onclick=skipVideo1;
   setTimeout(skipVideo1,20000);
-  v.onended=skipVideo1;
+  v1.onended=skipVideo1;
 }
-
 function skipVideo1(){
-  let v=document.getElementById("v1");
-  v.pause();
-  v.classList.add("hidden");
-  document.getElementById("phoneScreen").classList.remove("hidden");
+  v1.pause();
+  v1.classList.add("hidden");
+  phoneScreen.classList.remove("hidden");
 }
 
-/* فيديو 2 */
 function startVideo2(){
-  let phone=document.getElementById("phoneInput").value;
-  if(!phone.trim()) return;
-  document.getElementById("phoneScreen").classList.add("hidden");
-  let v=document.getElementById("v2");
-  v.classList.remove("hidden");
-  v.play();
-  v.onended=()=>{
-    v.classList.add("hidden");
-    document.getElementById("confirmScreen").classList.remove("hidden");
+  if(!phoneInput.value.trim()) return;
+  phoneScreen.classList.add("hidden");
+  v2.classList.remove("hidden");
+  v2.play();
+  v2.onended=()=>{
+    v2.classList.add("hidden");
+    confirmScreen.classList.remove("hidden");
   };
 }
 
-/* فيديو 3 */
 function startVideo3(){
-  document.getElementById("confirmScreen").classList.add("hidden");
-  let v=document.getElementById("v3");
-  v.classList.remove("hidden");
-  v.play();
-  v.onended=()=>{
-    document.getElementById("scanScreen").classList.remove("hidden");
+  confirmScreen.classList.add("hidden");
+  v3.classList.remove("hidden");
+  v3.play();
+  v3.onended=()=>{
+    scanScreen.classList.remove("hidden");
     startScan();
   };
 }
 
-/* الفحص */
+/* فحص تعليمي */
 function startScan(){
-  let counter=document.getElementById("counter");
-  let progress=document.getElementById("progressBar");
   let i=0;
   let interval=setInterval(()=>{
     i++;
     counter.innerText=(Math.floor(Math.random()*999999)).toString().padStart(6,"0");
-    progress.style.width=(i*2)+"%";
+    progressBar.style.width=(i*2)+"%";
     if(i>=50) clearInterval(interval);
   },50);
 }
 
+/* Matrix Effect */
+const canvas=document.getElementById("matrixCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+const letters="01";
+const fontSize=16;
+const columns=canvas.width/fontSize;
+const drops=[];
+for(let x=0;x<columns;x++) drops[x]=1;
+function drawMatrix(){
+  ctx.fillStyle="rgba(0,0,0,0.05)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#00ffee";
+  ctx.font=fontSize+"px monospace";
+  for(let i=0;i<drops.length;i++){
+    const text=letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+    if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix,33);
 </script>
 </body>
 </html>
